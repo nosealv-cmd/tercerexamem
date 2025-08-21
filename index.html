@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Tracking Dashboard</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Rubik',sans-serif}
+    body{
+      background:hsl(226,43%,10%);
+      color:white;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+      padding:40px 20px;
+    }
+    .container{
+      display:grid;
+      grid-template-columns:250px 1fr;
+      gap:20px;
+      max-width:1100px;
+      width:100%;
+    }
+    /* perfil */
+    .profile{
+      background:hsl(235,46%,20%);
+      border-radius:15px;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .profile-top{
+      background:hsl(246,80%,60%);
+      padding:30px;
+      border-radius:15px 15px 0 0;
+      display:flex;
+      align-items:center;
+      gap:15px;
+    }
+    .profile-top img{
+      width:60px;height:60px;
+      border:3px solid white;
+      border-radius:50%;
+    }
+    .profile-top h2{font-size:1.5rem;}
+    .profile-bottom{
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .profile-bottom button{
+      background:none;
+      border:none;
+      text-align:left;
+      color:hsl(235,45%,61%);
+      font-size:1rem;
+      cursor:pointer;
+    }
+    .profile-bottom button:hover,
+    .profile-bottom button.active{color:white}
+    /* cards */
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:20px;
+    }
+    .card{
+      position:relative;
+      border-radius:15px;
+      overflow:hidden;
+    }
+    .card-bg{
+      height:60px;
+      background-repeat:no-repeat;
+      background-position:90% -10px;
+    }
+    .card-content{
+      background:hsl(235,46%,20%);
+      border-radius:15px;
+      padding:20px;
+      position:relative;
+      top:-20px;
+      cursor:pointer;
+      transition:.2s;
+    }
+    .card-content:hover{background:hsl(235,45%,30%)}
+    .card-content h3{font-size:1rem;margin-bottom:10px}
+    .card-content p{font-size:2rem;margin-bottom:5px}
+    .card-content small{color:hsl(236,100%,87%)}
+    @media(max-width:800px){
+      .container{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- perfil -->
+    <div class="profile">
+      <div class="profile-top">
+        <img src="images/image-jeremy.png" alt="Jeremy">
+        <div>
+          <p>Report for</p>
+          <h2>Jeremy Robson</h2>
+        </div>
+      </div>
+      <div class="profile-bottom">
+        <button data-periodo="daily">Daily</button>
+        <button data-periodo="weekly" class="active">Weekly</button>
+        <button data-periodo="monthly">Monthly</button>
+      </div>
+    </div>
+
+    <!-- tarjetas -->
+    <div class="cards"></div>
+  </div>
+
+  <script>
+    const colores={
+      Work:"hsl(15,100%,70%)",
+      Play:"hsl(195,74%,62%)",
+      Study:"hsl(348,100%,68%)",
+      Exercise:"hsl(145,58%,55%)",
+      Social:"hsl(264,64%,52%)",
+      "Self Care":"hsl(43,84%,65%)"
+    }
+    const iconos={
+      Work:"images/icon-work.svg",
+      Play:"images/icon-play.svg",
+      Study:"images/icon-study.svg",
+      Exercise:"images/icon-exercise.svg",
+      Social:"images/icon-social.svg",
+      "Self Care":"images/icon-self-care.svg"
+    }
+
+    async function cargarDatos(periodo="weekly"){
+      const res=await fetch("data.json")
+      const datos=await res.json()
+      const contenedor=document.querySelector(".cards")
+      contenedor.innerHTML=""
+      datos.forEach(item=>{
+        let actual=item.timeframes[periodo].current
+        let previo=item.timeframes[periodo].previous
+        let label=periodo=="daily"?"Yesterday":
+                  periodo=="weekly"?"Last Week":"Last Month"
+        let card=document.createElement("div")
+        card.className="card"
+        card.innerHTML=`
+          <div class="card-bg" style="background-color:${colores[item.title]};background-image:url(${iconos[item.title]})"></div>
+          <div class="card-content">
+            <h3>${item.title}</h3>
+            <p>${actual}hrs</p>
+            <small>${label} - ${previo}hrs</small>
+          </div>
+        `
+        contenedor.appendChild(card)
+      })
+    }
+
+    // botones
+    document.querySelectorAll(".profile-bottom button").forEach(btn=>{
+      btn.addEventListener("click",e=>{
+        document.querySelectorAll(".profile-bottom button").forEach(b=>b.classList.remove("active"))
+        e.target.classList.add("active")
+        cargarDatos(e.target.dataset.periodo)
+      })
+    })
+    cargarDatos()
+  </script>
+</body>
+</html>
